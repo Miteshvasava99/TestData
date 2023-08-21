@@ -1,0 +1,88 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CallbackService {
+
+    private final OAuth2RestTemplate oAuth2RestTemplate;
+
+    @Autowired
+    public CallbackService(OAuth2RestTemplate oAuth2RestTemplate) {
+        this.oAuth2RestTemplate = oAuth2RestTemplate;
+    }
+
+    public String sendCallbackRequest(CallbackRequest callbackRequest) {
+        // Set the URL of your callback API endpoint
+        String apiUrl = "https://example.com/callback";
+
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create the request entity with the callback request object and headers
+        HttpEntity<CallbackRequest> requestEntity = new HttpEntity<>(callbackRequest, headers);
+
+        // Use the execute method to make the POST request with a callback
+        ResponseEntity<String> response = oAuth2RestTemplate.execute(
+            apiUrl,
+            HttpMethod.POST,
+            requestCallback -> {
+                requestCallback.getHeaders().addAll(headers);
+                return requestCallback;
+            },
+            responseExtractor -> {
+                if (responseExtractor.getStatusCode() == HttpStatus.OK) {
+                    return "Callback request sent successfully.";
+                } else {
+                    return "Callback request failed.";
+                }
+            }
+        );
+
+        return response.getBody();
+    }
+}
+
+
+public class CallbackRequest {
+    private List<Message> messages;
+
+    // Getters and setters
+}
+
+public class Message {
+    private String role;
+    private String content;
+
+    // Getters and setters
+}
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class CallbackController {
+
+    private final CallbackService callbackService;
+
+    @Autowired
+    public CallbackController(CallbackService callbackService) {
+        this.callbackService = callbackService;
+    }
+
+    @GetMapping("/send-callback")
+    public String sendCallback() {
+        // Create a sample callback request
+        CallbackRequest callbackRequest = new CallbackRequest();
+        // Populate the messages list and set roles and content
+
+        // Send the callback request using the service
+        String response = callbackService.sendCallbackRequest(callbackRequest);
+
+        return response;
+    }
+}
