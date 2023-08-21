@@ -1,0 +1,49 @@
+import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+
+public class RestTemplateExample {
+
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = "https://jsonplaceholder.typicode.com/posts/1";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
+
+        Post responsePost = restTemplate.execute(
+            url,
+            HttpMethod.GET,
+            null,
+            new ResponseExtractor<Post>() {
+                @Override
+                public Post extractData(ClientHttpResponse response) throws IOException {
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        return objectMapper.readValue(response.getBody(), Post.class);
+                    } else {
+                        throw new IOException("Request failed with status code: " + response.getStatusCode());
+                    }
+                }
+            }
+        );
+
+        System.out.println("Response Post:");
+        System.out.println(responsePost);
+    }
+}
+
+class Post {
+    private int userId;
+    private int id;
+    private String title;
+    private String body;
+
+    // Constructors, getters, setters...
+}
