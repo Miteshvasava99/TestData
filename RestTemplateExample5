@@ -1,0 +1,42 @@
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+public class RestTemplateExample5 {
+
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = "https://jsonplaceholder.typicode.com/posts/1";
+
+        ResponseEntity<String> response = restTemplate.execute(
+            url,
+            HttpMethod.GET,
+            null,
+            new ResponseExtractor<ResponseEntity<String>>() {
+                @Override
+                public ResponseEntity<String> extractData(ClientHttpResponse response) throws IOException {
+                    InputStream responseBody = response.getBody();
+                    String body = responseBody != null ?
+                            new String(responseBody.readAllBytes(), StandardCharsets.UTF_8) : null;
+                    return ResponseEntity.status(response.getRawStatusCode())
+                            .headers(response.getHeaders())
+                            .body(body);
+                }
+            }
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            System.out.println("Response Body:");
+            System.out.println(response.getBody());
+        } else {
+            System.out.println("Request failed with status code: " + response.getStatusCodeValue());
+        }
+    }
+}
