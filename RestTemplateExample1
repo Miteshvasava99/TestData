@@ -1,0 +1,73 @@
+import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+
+public class RestTemplateExample1 {
+
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = "https://jsonplaceholder.typicode.com/posts";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Post post = new Post(101, 1, "Sample Title", "Sample Body");
+        HttpEntity<Post> httpEntity = new HttpEntity<>(post, headers);
+
+        ResponseEntity<String> response = restTemplate.execute(
+            url,
+            HttpMethod.POST,
+            new RequestCallback() {
+                @Override
+                public void doWithRequest(ClientHttpRequest request) throws IOException {
+                    HttpHeaders requestHeaders = httpEntity.getHeaders();
+                    if (requestHeaders != null) {
+                        request.getHeaders().putAll(requestHeaders);
+                    }
+
+                    if (httpEntity.getBody() != null) {
+                        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+                        String postJson = new ObjectMapper().writeValueAsString(httpEntity.getBody());
+                        try (OutputStream requestBody = request.getBody()) {
+                            requestBody.write(postJson.getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                }
+            },
+            new ResponseExtractor<ResponseEntity<String>>() {
+                @Override
+                public ResponseEntity<String> extractData(ClientHttpResponse response) throws IOException {
+                    InputStream responseBody = response.getBody();
+                    String body = responseBody != null ?
+                            new String(responseBody.readAllBytes(), StandardCharsets.UTF_8) : null;
+                    return ResponseEntity.status(response.getRawStatusCode())
+                            .headers(response.getHeaders())
+                            .body(body);
+                }
+            }
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            System.out.println("Response Body:");
+            System.out.println(response.getBody());
+        } else {
+            System.out.println("Request failed with status code: " + response.getStatusCodeValue());
+        }
+    }
+}
+
+class Post {
+    private int userId;
+    private int id;
+    private String title;
+    private String body;
+
+    // Constructor, getters, setters...
+}
