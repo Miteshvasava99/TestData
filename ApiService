@@ -1,0 +1,83 @@
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Service
+public class ApiService {
+
+    private final RestTemplate restTemplate;
+
+    public ApiService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public String sendCallbackRequest(CallbackRequest callbackRequest) {
+        // Set the URL of your callback API endpoint
+        String apiUrl = "https://example.com/callback";
+
+        // Set up headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create the request entity with the callback request object and headers
+        HttpEntity<CallbackRequest> requestEntity = new HttpEntity<>(callbackRequest, headers);
+
+        // Use the execute method to make the POST request
+        ResponseEntity<String> response = restTemplate.execute(
+            apiUrl,
+            HttpMethod.POST,
+            requestCallback -> requestEntity,
+            responseExtractor -> {
+                if (responseExtractor.getStatusCode() == HttpStatus.OK) {
+                    return "Callback request sent successfully.";
+                } else {
+                    return "Callback request failed.";
+                }
+            }
+        );
+
+        return response.getBody();
+    }
+}
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class CallbackController {
+
+    private final ApiService apiService;
+
+    @Autowired
+    public CallbackController(ApiService apiService) {
+        this.apiService = apiService;
+    }
+
+    @GetMapping("/send-callback")
+    public String sendCallback() {
+        // Create a sample callback request
+        CallbackRequest callbackRequest = new CallbackRequest();
+        // Populate the messages list and set roles and content
+
+        // Send the callback request using the service
+        String response = apiService.sendCallbackRequest(callbackRequest);
+
+        return response;
+    }
+}
+
+
+public class CallbackRequest {
+    private List<Message> messages;
+
+    // Getters and setters
+}
+
+public class Message {
+    private String role;
+    private String content;
+
+    // Getters and setters
+}
