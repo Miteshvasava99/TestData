@@ -1,0 +1,36 @@
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
+public class IstioRestTemplateExample {
+
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = "http://your-service-url/api/endpoint";
+        
+        ResponseEntity<YourResponseClass> response = restTemplate.execute(
+            url,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<ResponseEntity<YourResponseClass>>() {},
+            (RequestCallback) null // You can add a request callback if needed,
+            (ResponseExtractor<Void>) null // You can add a response extractor if needed
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            YourResponseClass responseBody = response.getBody();
+            System.out.println("Response Body:");
+            System.out.println(responseBody);
+        } else {
+            System.out.println("Request failed with status code: " + response.getStatusCodeValue());
+        }
+    }
+}
+
+class YourResponseClass {
+    // Your response class fields, getters, setters...
+}
