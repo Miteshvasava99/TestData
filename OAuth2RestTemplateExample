@@ -1,0 +1,43 @@
+import org.springframework.http.*;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
+public class OAuth2RestTemplateExample {
+
+    public static void main(String[] args) {
+        OAuth2ProtectedResourceDetails resourceDetails = new MyOAuth2ResourceDetails(); // Define your OAuth2 resource details
+
+        OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(resourceDetails);
+
+        String url = "https://api.example.com/data";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> httpEntity = new HttpEntity<>(headers); // No request body in this case
+
+        ResponseEntity<YourResponseClass> response = oAuth2RestTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            httpEntity,
+            new ParameterizedTypeReference<YourResponseClass>() {}
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            YourResponseClass responseBody = response.getBody();
+            System.out.println("Response Body:");
+            System.out.println(responseBody);
+        } else {
+            System.out.println("Request failed with status code: " + response.getStatusCodeValue());
+        }
+    }
+}
+
+class MyOAuth2ResourceDetails implements OAuth2ProtectedResourceDetails {
+    // Implement OAuth2ProtectedResourceDetails methods here
+}
+
+class YourResponseClass {
+    // Your response class fields, getters, setters...
+}
