@@ -1,0 +1,20 @@
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+import java.util.Map;
+
+public class ListOfMapToObjectMapperExample {
+
+    public static void main(String[] args) throws Exception {
+        String json = "[{\"key1\":\"value1\",\"key2\":\"value2\"},{\"key1\":\"value3\",\"key2\":\"value4\"}]";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, String>> listOfMaps = objectMapper.readValue(json, new TypeReference<List<Map<String, String>>>(){});
+        
+        for (Map<String, String> map : listOfMaps) {
+            MyData myData = objectMapper.convertValue(map, MyData.class);
+            // Process each MyData object
+        }
+    }
+}
