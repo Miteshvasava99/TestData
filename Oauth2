@@ -1,0 +1,47 @@
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestTemplate;
+
+public class BearerTokenRequestCallback implements RequestCallback {
+
+    private String token;
+
+    public BearerTokenRequestCallback(String token) {
+        this.token = token;
+    }
+
+    @Override
+    public void doWithRequest(org.springframework.http.client.ClientHttpRequest request) {
+        HttpHeaders headers = request.getHeaders();
+        headers.set("Authorization", "Bearer " + token);
+    }
+}
+
+public class Main {
+
+    public static void main(String[] args) {
+        String token = "your-bearer-token"; // Replace with your actual token
+
+        OAuth2RestTemplate restTemplate = new OAuth2RestTemplate(/* OAuth2 client details */);
+
+        RequestCallback requestCallback = new BearerTokenRequestCallback(token);
+
+        String url = "https://api.example.com/data-endpoint";
+
+        // Use the custom request callback with the OAuth2RestTemplate
+        restTemplate.execute(
+                url,
+                HttpMethod.GET,
+                requestCallback,
+                response -> {
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        // Handle the response here
+                        return response.getBody();
+                    } else {
+                        throw new Exception("Request failed with status code: " + response.getStatusCode());
+                    }
+                }
+        );
+    }
+}
