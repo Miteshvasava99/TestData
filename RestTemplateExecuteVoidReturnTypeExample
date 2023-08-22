@@ -1,0 +1,43 @@
+import org.springframework.http.*;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
+public class RestTemplateExecuteVoidReturnTypeExample {
+
+    public static void main(String[] args) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://api.example.com/action-endpoint";
+
+        MyRequestObject requestObject = new MyRequestObject();
+        // Set properties of the request object
+
+        RequestCallback requestCallback = request -> {
+            HttpHeaders headers = request.getHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
+            String jsonBody = new ObjectMapper().writeValueAsString(requestObject);
+            request.getBody().write(jsonBody.getBytes());
+        };
+
+        restTemplate.execute(
+            url,
+            HttpMethod.POST,
+            requestCallback,
+            response -> {
+                // Perform any necessary actions here
+                // No specific response handling needed for void return type
+                return null; // Return null for void return type
+            }
+        );
+
+        // Any code following the execute call
+    }
+}
+
+class MyRequestObject {
+    // Define properties of the request object
+}
